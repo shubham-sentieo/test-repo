@@ -1,0 +1,20 @@
+name: Create Release Cycle pull request
+on:
+  push:
+    branches:
+      - main
+jobs:
+  productionPromotion:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: rc/4.8.9
+      - name: Reset promotion branch
+        run: |
+          git fetch origin main:main
+          git reset --hard main
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          branch: rc/4.8.9
