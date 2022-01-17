@@ -2,19 +2,27 @@ name: Create Release Cycle pull request
 on:
   push:
     branches:
-      - main
+      - master
 jobs:
-  productionPromotion:
+  releasePromotion:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: rc/4.8.9
+          fetch-depth: 0 # Required due to the way Git works, without it this action won't be able to find any or the correct tags
+      - name: Get latest Release
+        id: latest_release
+        run: |
+          LATEST_RC=$(git for-each-ref --format="%(refname)|%(contents)" --sort=-creatordate --count=2  "refs/tags/rc-*" | head -1 | tail -1)
+          echo ::set-output name=current_branch::$(echo $LATEST_RC | awk -F ' '  '{print $NF}')
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ steps.latest_release.outputs.current_branch }}
       - name: Reset promotion branch
         run: |
-          git fetch origin main:main
-          git reset --hard main
+          git fetch origin master:master
+          git reset --hard master
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
         with:
-          branch: rc-promotion
+          branch: rc-update
